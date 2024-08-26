@@ -37,7 +37,9 @@ import { initVueComponentLoader } from 'vue-dynamic-component-loader';
 2. Initialize the component loader:
 
 ```js
-initVueComponentLoader();
+// Example of how to generate the component object
+const components = import.meta.glob('/resources/components/*.vue');
+initVueComponentLoader(components,'.vue-component');
 ```
 
 3. In your HTML, use the vue-component class and data-component attribute to specify which  component to load (you need to have MyComponent.vue in your components directory):
@@ -48,28 +50,23 @@ initVueComponentLoader();
 
 ## Advanced Usage
 
-You can customize the component selector and base path:
+You can customize the component selector
 
 ```ts
-initVueComponentLoader('.my-vue-component', '/path/to/components');
-```
-
-To specify a custom path for a specific component, use the data-component-path attribute:
-
-```html
-<div class="vue-component" data-component="MyComponent" data-component-path="/custom/path"></div>
+const components = import.meta.glob('/resources/components/*.vue');
+initVueComponentLoader(components, '.my-component-selector');
 ```
 
 ## API
 
-```ts
-initVueComponentLoader(componentSelector?: string, componentPath?: string): void
+```js
+initVueComponentLoader( components: ComponentGlobFunction, componentSelector: string = '.vue-component'): void
 ```
 
 Initializes the Vue component loader.
 
-- componentSelector: CSS selector for component containers (default: '.vue-component')
-- componentPath: Base path for component files (default: '../components')
+- components: Object containing component paths and import functions
+- componentSelector: CSS selector for component containers (default: .vue-component)
 
 ### VueComponentLoader
 
@@ -78,7 +75,7 @@ A class for loading Vue components.
 ```js
 import { VueComponentLoader } from 'vue-dynamic-component-loader';
 
-const loader = new VueComponentLoader('/path/to/components');
+const loader = new VueComponentLoader(components);
 const component = await loader.loadComponent('MyComponent');
 ```
 
@@ -89,7 +86,7 @@ A class for mounting Vue components.
 ```js
 import { VueComponentLoader, ComponentMounter } from 'vue-dynamic-component-loader';
 
-const loader = new VueComponentLoader();
+const loader = new VueComponentLoader(components);
 const mounter = new ComponentMounter(loader);
 
 const element = document.querySelector('.vue-component');

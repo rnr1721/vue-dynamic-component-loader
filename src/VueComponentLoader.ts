@@ -2,25 +2,20 @@ import { createApp, defineAsyncComponent, h, defineComponent as vueDefineCompone
 import { ComponentElement, ComponentLoader } from './types';
 
 /** Type for component loading function */
-type ComponentGlobFunction = (path: string) => Record<string, () => Promise<any>>;
+type ComponentGlobFunction = Record<string, () => Promise<any>>;
 
 /**
  * Class for loading Vue components
  * @implements {ComponentLoader}
  */
 export class VueComponentLoader implements ComponentLoader {
-  private componentFiles: Record<string, () => Promise<any>>;
-  private componentGlob: ComponentGlobFunction;
-  private basePath: string;
+  private componentFiles: ComponentGlobFunction;
 
   /**
-   * @param {string} basePath - Base path to components
-   * @param {ComponentGlobFunction} globFunction - Function for loading components
+   * @param {ComponentGlobFunction} componentFiles - Object containing component paths and import functions
    */
-  constructor(basePath: string = '../components', globFunction?: ComponentGlobFunction) {
-    this.basePath = basePath;
-    this.componentGlob = globFunction || ((path: string) => ({}));
-    this.componentFiles = this.componentGlob(`${this.basePath}/*.vue`);
+  constructor(componentFiles: ComponentGlobFunction) {
+    this.componentFiles = componentFiles;
   }
 
   /**
@@ -33,7 +28,7 @@ export class VueComponentLoader implements ComponentLoader {
   async loadComponent(componentName: string, customPath?: string): Promise<ReturnType<typeof vueDefineComponent>> {
     const fullPath = customPath
       ? `${customPath}/${componentName}.vue`
-      : `${this.basePath}/${componentName}.vue`;
+      : `/resources/components/${componentName}.vue`;
 
     if (!(fullPath in this.componentFiles)) {
       throw new Error(`Component ${componentName} not found at path: ${fullPath}`);
@@ -122,12 +117,12 @@ export class ComponentMounter {
 
 /**
  * Initializes the Vue component loader
+ * @param {ComponentGlobFunction} components - Object containing component paths and import functions
  * @param {string} componentSelector - CSS selector for components
- * @param {string} componentPath - Path to components
  */
-export function initVueComponentLoader(componentSelector: string = '.vue-component', componentPath: string = '../components'): void {
+export function initVueComponentLoader( components: ComponentGlobFunction, componentSelector: string = '.vue-component'): void {
   document.addEventListener('DOMContentLoaded', () => {
-    const loader = new VueComponentLoader(componentPath);
+    const loader = new VueComponentLoader(components);
     const mounter = new ComponentMounter(loader);
     const vueComponents = document.querySelectorAll<ComponentElement>(componentSelector);
     vueComponents.forEach((el) => {
